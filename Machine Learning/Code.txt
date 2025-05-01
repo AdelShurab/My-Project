@@ -1,0 +1,117 @@
+knn
+data = readtable("breast-cancer.csv"); %read data file 
+[r,c] = size(data); % Find the size of the data set r = rows c = 5
+
+%KNN has no training set (all dataset)
+number_of_features = c-1; %4
+
+x = data(:,1 : number_of_features);
+y = data(:,c); 
+
+k=3;
+Mdl = fitcknn(x,y,'NumNeighbors',k); % last parameter for K
+
+label = predict(Mdl,x); %predict function to predict the class
+
+disp(label);
+err = loss(Mdl , x , y);
+ytest = table2cell(y);
+[m,order] = confusionmat(ytest,label);
+disp(m);
+----------------------------------------------------------------------------------------------
+NB
+data = readtable("breast-cancer.csv");
+
+ 
+
+[r, c] = size(data);
+
+ 
+
+number_of_featcher = c-1;
+
+ 
+
+x = data(:, 1: number_of_featcher);
+
+ 
+
+y = data(:, c);
+Mdl = fitcnb(x, y);
+%plotPartialDependence(Mdl,3);
+err = loss( Mdl , x , y );
+%ytest = table2cell(ytest);
+[m,order] = confusionmat(ytest,label);
+disp(m);
+--------------------------------------------------------------------------------------------------------------
+DT
+data = readtable("breast-cancer.csv");
+[r,c] = size(data);
+number_of_training = round(r * 2/3); %100
+number_of_testing = round(r * 1/3); %50
+number_of_features = c-1;
+x = 1 : number_of_features;
+y = c;
+              
+xtrain = data((1:number_of_training),x);
+ytrain = data((1:number_of_training),y);
+xtest = data(number_of_training+1 : r , x);
+ytest = data(number_of_training+1 : r , y);
+
+Mdl = fitctree(xtrain, ytrain);
+view(Mdl);
+view(Mdl, 'mode', 'graph');
+% err = loss( Mdl , xtest , y );
+label = predict(Mdl,xtest);
+ytest = table2cell(ytest);
+[m,order] = confusionmat(ytest,label);
+disp(m);
+---------------------------------------------------------------------
+datasplit
+data = readtable("breast-cancer.csv");
+[r,c] = size(data);
+number_of_training = round(r * 2/3); %100
+number_of_testing = round(r * 1/3); %50
+number_of_features = c-1;
+x = 1 : number_of_features;
+y = c;
+              
+xtrain = data((1:number_of_training),x);
+ytrain = data((1:number_of_training),y);
+xtest = data(number_of_training+1 : r , x);
+ytest = data(number_of_training+1 : r , y);
+
+------------------------------------------------------------------------------
+kfold
+data = readtable("breast-cancer.csv"); %read data file 
+data2 = table2cell(data);
+[r,c] = size(data2); % Find the size of the data set r = rows c = columns
+number_of_features = c-1;
+x = 1 : number_of_features; %Extract only features without classes 
+y = c; %Extract only class
+
+Data = data2((1:r),x);
+Class = data2((1:r),y);
+
+% Perform 10-fold cross validation
+cv = cvpartition(Class,'KFold',10);
+
+% Loop through each fold
+for i = 1:cv.NumTestSets %10
+    % Get the training and test sets for each fold
+    training_data = data(cv.training(i),x); %training Data (without class)
+    training_class = data(cv.training(i),y); %training Data (class)
+    testing_data = data(cv.test(i),x); %testing Data (without class)
+    testing_class = data(cv.test(i),y); %testing Data (with class)
+   
+    %Build models
+    Mdl = fitcknn(training_data,training_class,'NumNeighbors',3); 
+    Mdl2 = fitctree((training_data),(training_class));
+
+    % Test the classifier on the test set
+    pred = predict(Mdl,testing_data);
+    %Compute the classification error for this fold
+    [m,order] = confusionmat(table2cell(testing_class),pred);
+    disp("Confusion Matrix of the " + i + "th fold");
+    disp(m);
+end
